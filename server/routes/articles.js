@@ -1,12 +1,17 @@
 // @ts-check
 
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import i18next from "i18next";
-import { articles } from "../../db/schema/index.js";
+import { articles, comments } from "../../db/schema/index.js";
 import { validateArticle } from "../validators/article.js";
+import { validateComment } from "../validators/comment.js";
 
 export default (app) => {
   const findArticle = async (id) => {
+    if (!/^\d+$/.test(id) || Number(id) < 1 || Number(id) > 2147483647) {
+      return null;
+    }
+
     const [article] = await app.db
       .select()
       .from(articles)
@@ -15,6 +20,13 @@ export default (app) => {
 
     return article ?? null;
   };
+
+  const findComments = (articleId) =>
+    app.db
+      .select()
+      .from(comments)
+      .where(eq(comments.articleId, articleId))
+      .orderBy(asc(comments.createdAt), asc(comments.id));
 
   const updateArticle = async (req, reply) => {
     const { id } = req.params;
@@ -77,7 +89,36 @@ export default (app) => {
       return reply;
     })
     .get("/articles/:id", { name: "article" }, async (req, reply) => {
-      reply.render("articles/show", { article: await findArticle(req.params.id) });
+      const article = await findArticle(req.params.id);
+      if (!article) {
+        return reply.notFound();
+      }
+      reply.render("articles/show", {
+        article,
+        comments: await findComments(article.id),
+        comment: { content: "" },
+        errors: [],
+      });
+      return reply;
+    })
+    .post("/articles/:id/comments", { name: "articleComments" }, async (req, reply) => {
+      const article = await findArticle(req.params.id);
+      if (!article) {
+        return reply.notFound();
+      }
+      const { data, errors } = validateComment(req.body?.data);
+      if (errors) {
+        reply.code(422);
+        reply.render("articles/show", {
+          article,
+          comments: await findComments(article.id),
+          comment: { content: req.body?.data?.content ?? "" },
+          errors,
+        });
+        return reply;
+      }
+      await app.db.insert(comments).values({ ...data, articleId: article.id });
+      reply.redirect(app.reverse("article", { id: article.id }));
       return reply;
     })
     .get("/articles/:id/edit", { name: "editArticle" }, async (req, reply) => {
