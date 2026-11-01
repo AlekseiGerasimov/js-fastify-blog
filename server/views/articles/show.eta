@@ -1,2 +1,25 @@
 <% layout("../layouts/application", { header: it.article.title }) %>
 <%~ include("../mixins/article", { content: it.article.content }) %>
+
+<section class="mt-8">
+  <h2 class="mb-4 text-2xl font-bold"><%= it.t('views.comments.header') %></h2>
+  <% if (it.comments.length === 0) { %>
+    <p class="mb-4"><%= it.t('views.comments.empty') %></p>
+  <% } else { %>
+    <ul class="mb-6 space-y-4">
+      <% it.comments.forEach((comment) => { %>
+        <li class="whitespace-pre-wrap rounded border border-gray-200 p-4"><%= comment.content %></li>
+      <% }) %>
+    </ul>
+  <% } %>
+  <form action="<%= it.route('articleComments', { id: it.article.id }) %>" method="post">
+    <label class="mb-2 block font-semibold" for="comment-content"><%= it.t('views.comments.content') %></label>
+    <textarea class="block w-full rounded border border-gray-300 p-2" id="comment-content" name="data[content]" maxlength="2000" rows="4" aria-describedby="comment-errors"><%= it.comment.content %></textarea>
+    <div id="comment-errors" class="text-red-600">
+      <% it.errors.forEach((error) => { %>
+        <p><%= error.message %></p>
+      <% }) %>
+    </div>
+    <button class="mt-3 rounded bg-blue-600 px-4 py-2 text-white" type="submit"><%= it.t('views.comments.submit') %></button>
+  </form>
+</section>

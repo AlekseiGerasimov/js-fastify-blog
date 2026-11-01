@@ -22,6 +22,14 @@ export default {
       },
     },
     views: {
+      comments: {
+        header: "Comments",
+        empty: "No comments yet",
+        content: "Comment",
+        submit: "Add comment",
+        required: "Enter a comment",
+        tooLong: "Comment must be at most 2000 characters",
+      },
       article: {
         create: {
           success: "Success",

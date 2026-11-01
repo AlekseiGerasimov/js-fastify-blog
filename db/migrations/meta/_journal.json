@@ -8,6 +8,13 @@
       "when": 1786483778767,
       "tag": "0000_first_carlie_cooper",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793553105550,
+      "tag": "0001_brown_wind_dancer",
+      "breakpoints": true
     }
   ]
 }

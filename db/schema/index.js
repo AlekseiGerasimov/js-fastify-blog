@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 // Диалект один, PostgreSQL: локально его роль играет PGlite (тот же postgres,
 // собранный в WebAssembly), на деплое настоящий сервер. Раньше диалектов было
@@ -15,4 +15,17 @@ export const articles = pgTable("articles", {
   updatedAt: timestamp("updated_at", { mode: "string" }).notNull().defaultNow(),
 });
 
-export default { articles };
+export const comments = pgTable(
+  "comments",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    articleId: integer("article_id")
+      .notNull()
+      .references(() => articles.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+  },
+  (table) => [index("comments_article_id_index").on(table.articleId)],
+);
+
+export default { articles, comments };
